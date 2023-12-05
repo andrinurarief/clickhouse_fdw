@@ -50,11 +50,12 @@ size_t write_data(void *contents, size_t size, size_t nmemb, void *userp)
 	return realsize;
 }
 
-ch_http_connection_t *ch_http_connection(char *host, int port, char *username, char *password)
+ch_http_connection_t *ch_http_connection(char *hostname, int port, char *username, char *password)
 {
 	int n;
 	char *connstring = NULL;
 	char *protocol = NULL;
+	char *host = NULL;
 	size_t len = 20; /* all symbols from url string + some extra */
 
 	curl_error_happened = false;
@@ -69,8 +70,10 @@ ch_http_connection_t *ch_http_connection(char *host, int port, char *username, c
 	if (strncmp(host, "https", 5) == 0)
 	{
 		strcpy(protocol, "https");
+		strncpy(host, hostname, size_of(hostname)- 8);	
 	} else {
 		strcpy(protocol, "http");
+		strncpy(host, hostname, size_of(hostname));
 	}
 
 	len += strlen(host) + snprintf(NULL, 0, "%d", port);
