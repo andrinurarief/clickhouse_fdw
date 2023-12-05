@@ -54,6 +54,7 @@ ch_http_connection_t *ch_http_connection(char *host, int port, char *username, c
 {
 	int n;
 	char *connstring = NULL;
+	char *protocol = NULL;
 	size_t len = 20; /* all symbols from url string + some extra */
 
 	curl_error_happened = false;
@@ -64,6 +65,13 @@ ch_http_connection_t *ch_http_connection(char *host, int port, char *username, c
 	conn->curl = curl_easy_init();
 	if (!conn->curl)
 		goto cleanup;
+
+	if (strncmp(host, "https", 5) == 0)
+	{
+		strcpy(protocol, "https");
+	} else {
+		strcpy(protocol, "http");
+	}
 
 	len += strlen(host) + snprintf(NULL, 0, "%d", port);
 
@@ -83,17 +91,17 @@ ch_http_connection_t *ch_http_connection(char *host, int port, char *username, c
 
 	if (username && password)
 	{
-		n = snprintf(connstring, len, "http://%s:%s@%s:%d/", username, password, host, port);
+		n = snprintf(connstring, len, "%s://%s:%s@%s:%d/", protocol, username, password, host, port);
 		curl_free(username);
 		curl_free(password);
 	}
 	else if (username)
 	{
-		n = snprintf(connstring, len, "http://%s@%s:%d/", username, host, port);
+		n = snprintf(connstring, len, "%s://%s@%s:%d/", protocol, username, host, port);
 		curl_free(username);
 	}
 	else
-		n = snprintf(connstring, len, "http://%s:%d/", host, port);
+		n = snprintf(connstring, len, "%s://%s:%d/", protocol, host, port);
 
 	if (n < 0)
 		goto cleanup;
@@ -161,6 +169,11 @@ ch_http_response_t *ch_http_simple_query(ch_http_connection_t *conn, const char 
 	}
 	else
 		curl_easy_setopt(conn->curl, CURLOPT_NOPROGRESS, 1L);
+
+	/* SSL */
+	if (strncmp(conn->base_url, "https") == 0) {
+		curl_easy_setopt(conn->curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	}
 
 	curl_error_happened = false;
 	errcode = curl_easy_perform(conn->curl);
