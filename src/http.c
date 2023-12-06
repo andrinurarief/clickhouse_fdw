@@ -70,7 +70,7 @@ ch_http_connection_t *ch_http_connection(char *hostname, int port, char *usernam
 	if (strncmp(host, "https", 5) == 0)
 	{
 		strcpy(protocol, "https");
-		strncpy(host, hostname, size_of(hostname)- 8);	
+		strncpy(host, hostname + 8, size_of(hostname) - 8);	
 	} else {
 		strcpy(protocol, "http");
 		strncpy(host, hostname, size_of(hostname));
